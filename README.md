@@ -1,3 +1,5 @@
+https://medium.com/@inderjotsingh141/github-actions-to-ecs-container-b9a492fc95bc
+
 # Githubactions
 
 Here are the structured notes based on the video transcript:
@@ -207,4 +209,159 @@ jobs:
 - This action is almost always the first step in a workflow that needs to interact with the repository's code.  
 - It supports features like checking out a specific branch, fetching all history, or using a personal access token for private repos.  
 
-Would you like help configuring additional options for `actions/checkout`?
+if you have to run multiple commands
+     run: |
+        sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+        echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+        sudo apt-get update -y
+        sudo apt-get install -y trivy
+
+
+
+        test:
+    runs-on: self-hosted
+    needs: security-check
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    - name: Unit Test Cases
+      run: mvn test
+
+  build_project_and_sonar_scan:
+    runs-on: self-hosted
+    needs: test **Here one the above test job is run it will run**
+    steps:
+----
+In GitHub Actions, **labels** are used to categorize and organize workflows, jobs, or steps. They can be applied in different contexts:
+
+### 1. **Self-Hosted Runner Labels**
+   - Used to direct jobs to specific self-hosted runners.
+   - Example:
+     ```yaml
+     jobs:
+       deploy:
+         runs-on: [self-hosted, linux, production]
+     ```
+   - Here, `linux` and `production` are labels assigned to a self-hosted runner.
+
+### 2. **Matrix Strategy Labels**
+   - Used in matrix strategies to define different configurations.
+   - Example:
+     ```yaml
+     jobs:
+       test:
+         strategy:
+           matrix:
+             os: [ubuntu-latest, windows-latest]
+             node: [14, 16]
+         runs-on: ${{ matrix.os }}
+     ```
+   - Here, `ubuntu-latest` and `windows-latest` are labels for different OS environments.
+
+### 3. **Labeling Issues & PRs via Workflows**
+   - GitHub Actions can automatically add/remove labels to issues or PRs using `actions/github-script` or `actions-ecosystem/action-add-labels`.
+   - Example:
+     ```yaml
+     - name: Add Label
+       uses: actions-ecosystem/action-add-labels@v1
+       with:
+         labels: bug, high-priority
+     ```
+
+### 4. **Filtering Workflows Based on PR/Issue Labels**
+   - You can trigger workflows conditionally based on labels.
+   - Example:
+     ```yaml
+     on:
+       pull_request:
+         types: [labeled]
+     jobs:
+       build:
+         if: contains(github.event.pull_request.labels.*.name, 'urgent')
+         runs-on: ubuntu-latest
+     ```
+
+Would you like more details on a specific use case? 🚀
+**The runnder status should be green and Idle***
+
+In Ubuntu, when you install Docker, it creates a `docker` group to manage access to the Docker daemon. By default, only the **root** user or members of the **docker** group can run Docker commands.
+
+### How to Add a User to the Docker Group in Ubuntu
+
+1. **Check if the `docker` group exists:**
+   ```sh
+   sudo groupadd docker
+   ```
+   (This command will create the group if it doesn't exist.)
+
+2. **Add your user to the `docker` group:**
+   ```sh
+   sudo usermod -aG docker $USER
+   ```
+   - `-aG` means "append to group."
+   - Replace `$USER` with the username if needed.
+
+3. **Apply the changes:**
+   - Log out and log back in, or run:
+     ```sh
+     newgrp docker
+     ```
+   - This refreshes group permissions without requiring a logout.
+
+4. **Verify Docker access:**
+   ```sh
+   docker run hello-world
+   ```
+   - If it runs successfully, the user has Docker access.
+
+### Important Security Note:
+- Being in the `docker` group grants **root-equivalent privileges** because Docker allows container manipulation that can affect the host system.
+- Only trusted users should be added to this group.
+
+### Alternative (Not Recommended):
+- Some users run Docker with `sudo` (e.g., `sudo docker ...`), but this is less secure and more cumbersome.
+
+Would you like help troubleshooting any specific Docker permission issues?
+
+----
+git repo
+GitHub actions
+add vm runner
+cicd yaml--:a)security check
+  b)test cases
+c)build and publish artificat
+d)build scan docker image and publish
+e)deploy to k8s
+
+like jenkins maste ro slave we have runner which runs cicd pipeline
+
+https://github.com/jaiswaladi246/Github-Actions-Project/blob/main/.github/workflows/cicd.ymlinside jobs you can have multiple jobs
+Each job will be running in a isolated environment
+
+how we can run jobs paralley?/one afte the ther?
+
+how do you check the deploy jobs in runner server?
+
+add docker user to group to run docker images
+
+secrets and tokens
+
+
+runner
+-shared runner- frree cost
+- private runner
+
+shared runner - if you want to run in ubuntu
+ you can use ubuntu-latest
+you cannot have acces to it
+
+- private runner
+
+phase
+
